@@ -1,0 +1,9 @@
+{
+  "useSSL": true,
+  "useHTTP": true,
+  "SSLPort": 8586,
+  "HTTPPort": 8585,
+  "privateKey": "./privkey.pem",
+  "certificate": "./fullchain.pem",
+  "webSrc": "src/webui/"
+}

@@ -56,6 +56,11 @@ function unlockButton() {
 	}
 }
 
+function renameAlert(title) {
+	let alert = document.getElementById("alert-room");
+	alert.textContent = title;
+}
+
 async function buttonIsPressed() {
 	//Reset the alert
 	document.getElementById("invalid-room").hidden = true;
@@ -69,15 +74,33 @@ async function buttonIsPressed() {
 
 	isRoomFree(roomName, username, roomPassword).then(function () {
 		//The room is free.
-		//TODO: implement the other page "inch'allah"
-		console.log("it's okay")
 		sessionStorage.setItem("roomName", roomName);
 		sessionStorage.setItem("username", username);
 		sessionStorage.setItem("roomPassword", roomPassword);
 		location.replace("/chat.html");
-	}).catch(function () {
+	}).catch(function (json) {
 		//The room isn't.
 		document.getElementById("invalid-room").hidden = false;
+		switch (json.why) {
+			case "badRequest":
+				renameAlert("Your browser sent a bad request.");
+				break;
+			case "full":
+				renameAlert("The room is full.");
+				break;
+			case "maxChars":
+				renameAlert("The room name or username is too long");
+				break;
+			case "nickname":
+				renameAlert("Your nickname is already taken by somebody in the room.");
+				break;
+			case "password":
+				renameAlert("The password that you entered is not valid");
+				break;
+			default:
+				renameAlert("There were an unexpected error, check javascript console for more details.");
+				break;
+		}
 		changeButtonState("join");
 	})
 }

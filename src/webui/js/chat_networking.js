@@ -27,10 +27,19 @@ async function connect({username, room, roomPassword}) {
 
 	mapToButton(function () {
 		if (getTextContent() !== "") {
-			ws.send(Js({
-				action: "talk",
-				message: getTextContent()
-			}));
+			aes4js.encrypt(roomPassword, getTextContent()).then(function (res) {
+				ws.send(Js({
+					action: "talk",
+					isEncrypted: true,
+					message: res
+				}));
+			}).catch(function () {
+				ws.send(Js({
+					action: "talk",
+					isEncrypted: false,
+					message: getTextContent()
+				}));
+			})
 			document.querySelector("input").value = "";
 		}
 	})
@@ -58,7 +67,14 @@ async function connect({username, room, roomPassword}) {
 					writeLine(strMessage);
 					break;
 				case "income_message":
-					writeLine(`<@${data.from}> ${data.message}`)
+					if (data.isEncrypted) {
+						aes4js.decrypt(roomPassword, data.message).then(function (decMessage) {
+							writeLine(`<S@${data.from}> ${decMessage}`);
+						}).catch(function () {
+							writeLine(`<E@${data.from}> sent a message that cannot be decrypted.`)
+						})
+					} else
+						writeLine(`<U@${data.from}> ${data.message}`)
 					break;
 				case "information":
 					switch (data.type) {

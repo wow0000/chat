@@ -90,16 +90,30 @@ function removeUserFromRoom(username, roomName) {
 			}
 		}
 	}
+	cleanupRoom(roomName);
 	//delete the room if nobody is in there
 	if (room.peoples.length === 0) {
 		console.log("deleted")
 		delete (rooms[roomName]);
-	} else
-		cleanupRoom(roomName);
+	}
+
 	//console.table(room);
 	console.table(rooms)
 }
 
+
+function checkNickname(roomName, username) {
+	let room = rooms[roomName];
+	for (let i = 0; i < room.peoples.length; ++i) {
+		try {
+			if (room.peoples[i].account.username === username) {
+				return true;
+			}
+		} catch (e) {
+		}
+	}
+	return false;
+}
 
 function cleanupRoom(roomName) {
 	let newPeoples = [];
@@ -118,13 +132,14 @@ router.get("/debug", function (req, res) {
 })
 
 router.post("/room", function (req, res) {
+	let room = rooms[req.body.roomName];
 	if (typeof req.body.roomName !== "string" || typeof req.body.username !== "string" || typeof req.body.roomPassword !== "string") {
-		res.json({"status": false, "human-readable": "bad request."});
+		res.json({"status": false, "human-readable": "bad request.", why: "badRequest"});
 		return;
 	}
 
-	if (req.body.roomName.length > 30 || req.body.username.length > 30) {
-		res.json({"status": false, "human-readable": "max chars exceeded"});
+	if (req.body.roomName.length > 50 || req.body.username.length > 30) {
+		res.json({"status": false, "human-readable": "max chars exceeded", why: "maxChars"});
 		return;
 
 	}
@@ -134,17 +149,22 @@ router.post("/room", function (req, res) {
 		return;
 	}
 
-	if (rooms[req.body.roomName].peoples.length >= rooms[req.body.roomName].max_peoples) {
-		res.json({"status": false, "human-readable": "invalid"}) // Voluntary hide details.
+	if (room.peoples.length >= rooms[req.body.roomName].max_peoples) {
+		res.json({"status": false, "human-readable": "invalid", why: "full"});
 		return;
 	}
 
-	if (rooms[req.body.roomName].hashedPassword === req.body.roomPassword) {
-		res.json({"status": true, "human-readable": "ready-to-authenticate"})
+	if (room.hashedPassword !== req.body.roomPassword) {
+		res.json({"status": false, "human-readable": "invalid", why: "password"});
 		return;
 	}
 
-	res.json({"status": false, "human-readable": "invalid"}) // Voluntary hide details
+	if (checkNickname(req.body.roomName, req.body.username)) {
+		res.json({"status": false, "human-readable": "nickname already taken", why: "nickname"})
+		return;
+	}
+
+	res.json({"status": true, "human-readable": "ready-to-authenticate"})
 });
 
 router.ws("/ws", function (ws, req) {
@@ -168,7 +188,10 @@ router.ws("/ws", function (ws, req) {
 				if (checkIfRoomExists(data.roomName)) {
 					//then verify if someone is already log-in and if the password is good.
 					if (rooms[data.roomName]["hashedPassword"] !== data.roomPassword)
-						return ws.send(Js({status: false, action, error: "incorrect password"}));
+						return ws.send(Js({status: false, action, error: "Incorrect password"}));
+
+					if (checkNickname(data.roomName, data.username))
+						return ws.send(Js({"status": false, action, error: "Nickname already taken"}));
 
 					//he can now join the room.
 					rooms[data.roomName].peoples.push(ws);
@@ -196,17 +219,29 @@ router.ws("/ws", function (ws, req) {
 			} else if (action === "talk") {
 				if (ws.account === undefined)
 					return ws.send(Js({status: false, error: "not logged in", action}));
-				if (typeof data.message !== "string")
-					return ws.send(Js({status: false, action, error: "bad request"}));
 
-				broadcast(ws.account.room, {
-					status: true,
-					action: "income_message",
-					message: data.message,
-					from: ws.account.username
-				});
+				//Check if msg is encrypted,bad
+				if (data.isEncrypted) {
+					broadcast(ws.account.room, {
+						status: true,
+						action: "income_message",
+						isEncrypted: true,
+						message: data.message,
+						from: ws.account.username
+					});
+				} else {
+					if (typeof data.message !== "string")
+						return ws.send(Js({status: false, action, error: "bad request"}));
 
-				return ws.send(Js({status: true, action}))
+					broadcast(ws.account.room, {
+						status: true,
+						action: "income_message",
+						isEncrypted: false,
+						message: data.message,
+						from: ws.account.username
+					});
+				}
+				return;
 			}
 		} catch (e) {
 			//An error happened a.k.a. bad request
