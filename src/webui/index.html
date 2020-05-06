@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Home</title>
+	<meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+	<link crossorigin="anonymous" href="css/bootstrap.min.css"
+		  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" rel="stylesheet">
+	<link crossorigin="anonymous" href="css/index.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container" hidden id="invalid-room">
+	<div class="alert alert-danger" role="alert">
+		The room is not available or the password is invalid.
+	</div>
+</div>
+<div class="center-height">
+	<div class="container center">
+		<div class="row">
+			<div class="col">
+				<input class="container shadow-lg p-3 mb-5 bg-white rounded" id="input-username" maxlength="30"
+					   placeholder="Username">
+			</div>
+			<div class="col">
+				<input class="container shadow-lg p-3 mb-5 bg-white rounded" id="input-roomName" maxlength="30"
+					   placeholder="Room">
+			</div>
+			<div class="w-100"></div> <!--Break Line-->
+			<div class="col">
+				<input class="container shadow-lg p-3 mb-5 bg-white rounded" id="input-roomPassword" maxlength="64"
+					   placeholder="Room Password"
+					   type="password">
+			</div>
+			<div class="col">
+				<button class="btn container shadow-lg p-3 mb-5 rounded btn-primary" disabled type="button">
+					<!--default-->
+					<div class="button-room-locked">
+						Fill the required information
+					</div>
+
+					<!--Join button-->
+					<div class="button-room-join" hidden>
+						Join !
+					</div>
+
+					<!--checking if room is available after join button is pressed.-->
+					<div class="button-room-check" hidden>
+						<div class="spinner-border spinner-grow-sm" role="status">
+						</div>
+						Checking room availability
+					</div>
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="js/index_networking.js"></script>
+<script src="js/index_ui.js"></script>
+
+</body>
+</html>

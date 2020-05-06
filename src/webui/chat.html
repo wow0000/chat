@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Online chat</title>
+	<meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+	<link crossorigin="anonymous" href="css/bootstrap.min.css"
+		  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" rel="stylesheet">
+	<link crossorigin="anonymous" href="css/index.css" rel="stylesheet">
+	<link crossorigin="anonymous" href="css/chat.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container-fluid">
+	<infobar class="infoBar text-white" id="info-channel"><span class="text-success" id="span-status">Loading</span> - #<span
+			id="span-channel">null</span></infobar>
+	<pre class="text-white"></pre>
+</div>
+<div class="chat-footer">
+	<div class="input-group">
+		<input class="form-control" id="mainTextBox" name="message" type="text">
+		<div class="input-group-append">
+			<button class="btn btn-primary" disabled id="send-button">Send</button>
+		</div>
+	</div>
+</div>
+
+<script src="js/chat_ui.js"></script>
+<script src="js/chat_networking.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+body {
+    background-color: #201F1E;
+}
+
+.center-height {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+}
+
+.center {
+    text-align: center;
+}
