@@ -2,17 +2,23 @@
 
 const fs = require("fs");
 const express = require("express");
+const helmet = require("helmet");
 const settings = require("./config.json");
 
 const app = express();
+app.use(helmet({
+	contentSecurityPolicy: {
+		directives: {
+			defaultSrc: ["'self'"],
+			styleSrc: ["'self'"]
+		}
+	},
+	crossdomain: true,
+	referrerPolicy: true
+}));
+
 
 function defineHeaders(app) {
-	app.use(function (req, res, next) {
-		//res.removeHeader("X-Powered-By");
-		res.setHeader("Access-Control-Allow-Origin", "null");
-		next();
-	})
-
 	const endpoint = require("./src/endpoint/chat");
 	app.use('/api', endpoint);
 

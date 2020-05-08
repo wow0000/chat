@@ -48,6 +48,7 @@ function defineNewOperator(ws, room) {
 		name: ws.account.username,
 		ws: ws
 	}
+	ws.account.owner = true;
 	broadcast(room, {status: true, action: "information", type: "new_op", username: ws.account.username})
 }
 
@@ -124,6 +125,10 @@ function cleanupRoom(roomName) {
 		}
 	}
 	room.peoples = newPeoples;
+}
+
+function commandHandler(command, data, ws) {
+
 }
 
 router.get("/debug", function (req, res) {
@@ -220,28 +225,20 @@ router.ws("/ws", function (ws, req) {
 				if (ws.account === undefined)
 					return ws.send(Js({status: false, error: "not logged in", action}));
 
-				//Check if msg is encrypted,bad
-				if (data.isEncrypted) {
-					broadcast(ws.account.room, {
-						status: true,
-						action: "income_message",
-						isEncrypted: true,
-						message: data.message,
-						from: ws.account.username
-					});
-				} else {
-					if (typeof data.message !== "string")
-						return ws.send(Js({status: false, action, error: "bad request"}));
+				if (typeof data.isEncrypted !== "boolean" || typeof data.algorithm !== "string" || data.algorithm.length > 10)
+					return ws.send(Js({status: false, action, error: "bad request"}));
 
-					broadcast(ws.account.room, {
-						status: true,
-						action: "income_message",
-						isEncrypted: false,
-						message: data.message,
-						from: ws.account.username
-					});
-				}
-				return;
+				if (!data.isEncrypted && typeof data.message !== "string")
+					return ws.send(Js({status: false, action, error: "bad request"}));
+
+				broadcast(ws.account.room, {
+					status: true,
+					action: "income_message",
+					algorithm: data.algorithm,
+					isEncrypted: data.isEncrypted,
+					message: data.message,
+					from: ws.account.username
+				});
 			}
 		} catch (e) {
 			//An error happened a.k.a. bad request
